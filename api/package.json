@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "dependencies": {
+    "lunar-javascript": "^1.0.0"
+  }
+}
