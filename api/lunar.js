@@ -6,7 +6,26 @@ export default function handler(req, res) {
   const lunar = solar.getLunar();
 
   // chuyển can chi sang tiếng Việt
-  const canChi = lunar.getYearInGanZhi()
+  const raw = lunar.getYearInGanZhi();
+
+// tách can và chi
+const can = raw.substring(0, 1);
+const chi = raw.substring(1);
+
+// map sang tiếng Việt
+const canMap = {
+  "甲": "Giáp", "乙": "Ất", "丙": "Bính", "丁": "Đinh",
+  "戊": "Mậu", "己": "Kỷ", "庚": "Canh", "辛": "Tân",
+  "壬": "Nhâm", "癸": "Quý"
+};
+
+const chiMap = {
+  "子": "Tý", "丑": "Sửu", "寅": "Dần", "卯": "Mão",
+  "辰": "Thìn", "巳": "Tỵ", "午": "Ngọ", "未": "Mùi",
+  "申": "Thân", "酉": "Dậu", "戌": "Tuất", "亥": "Hợi"
+};
+
+const canChi = `${canMap[can]} ${chiMap[chi]}`;
     .replace("丙", "Bính")
     .replace("丁", "Đinh")
     .replace("戊", "Mậu")
