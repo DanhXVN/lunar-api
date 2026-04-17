@@ -1,57 +1,61 @@
 import { Solar } from "lunar-javascript";
 
 export default function handler(req, res) {
-  const now = new Date();
-  const solar = Solar.fromDate(now);
-  const lunar = solar.getLunar();
+  try {
+    // 👉 lấy ngày từ query hoặc hôm nay
+    const { date } = req.query;
+    const now = date ? new Date(date) : new Date();
 
-  // chuyển can chi sang tiếng Việt
-  const raw = lunar.getYearInGanZhi();
+    const solar = Solar.fromDate(now);
+    const lunar = solar.getLunar();
 
-// tách can và chi
-const can = raw.substring(0, 1);
-const chi = raw.substring(1);
+    // ===== MAP CAN CHI =====
+    const canMap = {
+      "甲": "Giáp", "乙": "Ất", "丙": "Bính", "丁": "Đinh",
+      "戊": "Mậu", "己": "Kỷ", "庚": "Canh", "辛": "Tân",
+      "壬": "Nhâm", "癸": "Quý"
+    };
 
-// map sang tiếng Việt
-const canMap = {
-  "甲": "Giáp", "乙": "Ất", "丙": "Bính", "丁": "Đinh",
-  "戊": "Mậu", "己": "Kỷ", "庚": "Canh", "辛": "Tân",
-  "壬": "Nhâm", "癸": "Quý"
-};
+    const chiMap = {
+      "子": "Tý", "丑": "Sửu", "寅": "Dần", "卯": "Mão",
+      "辰": "Thìn", "巳": "Tỵ", "午": "Ngọ", "未": "Mùi",
+      "申": "Thân", "酉": "Dậu", "戌": "Tuất", "亥": "Hợi"
+    };
 
-const chiMap = {
-  "子": "Tý", "丑": "Sửu", "寅": "Dần", "卯": "Mão",
-  "辰": "Thìn", "巳": "Tỵ", "午": "Ngọ", "未": "Mùi",
-  "申": "Thân", "酉": "Dậu", "戌": "Tuất", "亥": "Hợi"
-};
+    // ===== CAN CHI NĂM =====
+    const yearRaw = lunar.getYearInGanZhi();
+    const canYear = yearRaw.substring(0, 1);
+    const chiYear = yearRaw.substring(1);
+    const canChiYear = `${canMap[canYear]} ${chiMap[chiYear]}`;
 
-const canChi = `${canMap[can]} ${chiMap[chi]}`;
-    .replace("丙", "Bính")
-    .replace("丁", "Đinh")
-    .replace("戊", "Mậu")
-    .replace("己", "Kỷ")
-    .replace("庚", "Canh")
-    .replace("辛", "Tân")
-    .replace("壬", "Nhâm")
-    .replace("癸", "Quý")
-    .replace("甲", "Giáp")
-    .replace("乙", "Ất")
-    .replace("子", "Tý")
-    .replace("丑", "Sửu")
-    .replace("寅", "Dần")
-    .replace("卯", "Mão")
-    .replace("辰", "Thìn")
-    .replace("巳", "Tỵ")
-    .replace("午", "Ngọ")
-    .replace("未", "Mùi")
-    .replace("申", "Thân")
-    .replace("酉", "Dậu")
-    .replace("戌", "Tuất")
-    .replace("亥", "Hợi");
+    // ===== CAN CHI NGÀY =====
+    const dayRaw = lunar.getDayInGanZhi();
+    const canDay = dayRaw.substring(0, 1);
+    const chiDay = dayRaw.substring(1);
+    const canChiDay = `${canMap[canDay]} ${chiMap[chiDay]}`;
 
-  res.status(200).json({
-    duong_lich: now.toLocaleDateString("vi-VN"),
-    am_lich: `${lunar.getDay()}/${lunar.getMonth()}/${lunar.getYear()}`,
-    can_chi: canChi
-  });
+    // ===== KẾT QUẢ =====
+    res.setHeader("Cache-Control", "s-maxage=3600"); // cache 1h
+
+    res.status(200).json({
+      duong_lich: now.toLocaleDateString("vi-VN"),
+      thu: now.toLocaleDateString("vi-VN", { weekday: "long" }),
+
+      am_lich: `${lunar.getDay()}/${lunar.getMonth()}/${lunar.getYear()}`,
+      ngay_am: lunar.getDay(),
+      thang_am: lunar.getMonth(),
+      nam_am: lunar.getYear(),
+
+      can_chi_nam: canChiYear,
+      can_chi_ngay: canChiDay,
+
+      timestamp: now.getTime()
+    });
+
+  } catch (e) {
+    res.status(500).json({
+      error: "Lỗi xử lý API",
+      message: e.toString()
+    });
+  }
 }
